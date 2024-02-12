@@ -3,21 +3,27 @@ import { X } from 'lucide-react'
 import { ChangeEvent, FormEvent, useState } from 'react'
 import { toast } from 'sonner'
 
-interface NoteCardProps {
+// Define props interface for NewNote component
+interface NewNoteProps {
   onNoteCreated: (content: string) => void
 }
 
+// Initialize SpeechRecognition variable
 let speechRecognition: SpeechRecognition | null = null
 
-export function NewNote({ onNoteCreated }: NoteCardProps) {
+// NewNote component
+export function NewNote({ onNoteCreated }: NewNoteProps) {
+  // State variables
   const [shouldShowOnboarding, setShouldShowOnboarding] = useState(true)
   const [isRecording, setIsRecording] = useState(false)
   const [content, setContent] = useState('')
 
+  // Function to handle start editing
   function handleStartEditing() {
     setShouldShowOnboarding(false)
   }
 
+  // Function to handle content change
   function handleContentChange(event: ChangeEvent<HTMLTextAreaElement>) {
     setContent(event.target.value)
     if (event.target.value === '') {
@@ -25,6 +31,7 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
     }
   }
 
+  // Function to handle save note
   function handleSaveNote(event: FormEvent) {
     event.preventDefault()
 
@@ -39,39 +46,50 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
     toast.success('Note saved')
   }
 
+  // Function to handle start recording
   function handleStartRecording() {
-
-    const isSpeechRecognitionSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
+    // Check if speech recognition is supported
+    const isSpeechRecognitionSupported =
+      'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
 
     if (!isSpeechRecognitionSupported) {
       toast.error('Speech recognition is not supported by your browser')
       return
     }
-    
+
     setIsRecording(true)
     setShouldShowOnboarding(false)
 
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognitionAPI =
+      window.SpeechRecognition || window.webkitSpeechRecognition
 
+    // Initialize speech recognition
     speechRecognition = new SpeechRecognitionAPI()
 
+    // Configure speech recognition
     speechRecognition.continuous = true
     speechRecognition.interimResults = true
     speechRecognition.lang = 'en-US'
     speechRecognition.maxAlternatives = 1
 
+    // Event listener for speech recognition result
     speechRecognition.onresult = (event) => {
       const transcription = Array.from(event.results).reduce((text, result) => {
         return text.concat(result[0].transcript)
       }, '')
       setContent(transcription)
-     }
+    }
+
+    // Event listener for speech recognition error
     speechRecognition.onerror = (event) => {
       console.error(event)
     }
+
+    // Start speech recognition
     speechRecognition.start()
   }
 
+  // Function to handle stop recording
   function handleStopRecording() {
     setIsRecording(false)
 
@@ -80,8 +98,10 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
     }
   }
 
+  // Render UI
   return (
     <Dialog.Root>
+      {/* Trigger for NewNote */}
       <Dialog.Trigger className="rounded-md flex flex-col bg-slate-700 p-5 gap-3 text-left hover:ring-2 hover:ring-slate-600 focus-visible:ring-2 focus-visible:ring-lime-400 outline-none">
         <span className="text-sm font-medium text-slate-200 ">Add note</span>
         <p className="text-sm leading-6 text-slate-400">
@@ -89,18 +109,25 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
         </p>
       </Dialog.Trigger>
 
+      {/* Portal for NewNote */}
       <Dialog.Portal>
+        {/* Overlay for NewNote */}
         <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+        {/* Content for NewNote */}
         <Dialog.Content className="fixed inset-0 md:inset-auto overflow-hidden md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-[640px] w-full md:h-[60vh] bg-slate-700 md:rounded-md flex flex-col outline-none">
+          {/* Close button for NewNote */}
           <Dialog.Close className="absolute top-0 right-0 bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100">
             <X className="size-5" />
           </Dialog.Close>
 
+          {/* Form for NewNote */}
           <form className="flex-1 flex flex-col">
             <div className="flex flex-1 flex-col gap-3 p-5">
+              {/* Title */}
               <span className="text-sm text-slate-300 font-medium">
                 Add a new note
               </span>
+              {/* Instructions */}
               {shouldShowOnboarding ? (
                 <p className="text-sm text-slate-400 leading-6">
                   Start{' '}
@@ -130,6 +157,7 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
                 />
               )}
             </div>
+            {/* Button to stop recording */}
             {isRecording ? (
               <button
                 onClick={handleStopRecording}
@@ -140,6 +168,7 @@ export function NewNote({ onNoteCreated }: NoteCardProps) {
                 Recording ...(click to stop)
               </button>
             ) : (
+              // Button to save note
               <button
                 onClick={handleSaveNote}
                 type="button"
